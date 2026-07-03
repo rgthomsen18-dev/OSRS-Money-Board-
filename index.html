@@ -270,9 +270,13 @@
     .note{font-size:11.5px;margin-top:10px;line-height:1.5}
     .note.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
     table{font-size:12.5px;min-width:520px} thead th,tbody td{padding:8px 8px}
-    #board-view table{min-width:430px}
+    #board-view table{min-width:100%}
     #board-view th:nth-child(4),#board-view td:nth-child(4):not([colspan]),
     #board-view th:nth-child(6),#board-view td:nth-child(6):not([colspan]){display:none}
+    .detail-wrap{flex-direction:column;gap:8px;padding:11px 12px}
+    .d-arrow{display:none}
+    .d-line{font-size:12px}
+    .d-actions{padding:10px 12px 12px}
     #opps-view table{min-width:380px}
     .setup-grid{grid-template-columns:1fr}
     .tabs{gap:0 2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -718,7 +722,7 @@
     </div>
   </div>
 
-  <footer><span class="buildstamp">Build 2026-07-02j · mobile fit pass (slim status, clamped notes, tighter tables, board GP/hr on-screen) · /volumes fallback · Holdings</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
+  <footer><span class="buildstamp">Build 2026-07-02k · Board fits phone width (no sideways scroll, stacked detail panels) · desktop layout unchanged</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
 </div>
 
 <script>
