@@ -442,7 +442,7 @@
   <div id="opps-view" role="tabpanel" aria-labelledby="tab-opps" tabindex="0" hidden>
     <p class="sub">Live read on what's unusually good <em>right now</em>, recomputed every refresh. "Hot to make" compares each recipe's current margin to its own 24h-average margin, so a spike means the method is paying more than usual. Market signals flag momentum and wide spreads for flipping or holding.</p>
     <div class="opp-sec"><h3 class="opp-h">🔥 Hot to make right now</h3><div class="tbl-shell"><table><thead><tr><th>Method</th><th class="num">GP / hr</th><th class="num">vs typical</th><th class="num">XP / hr</th></tr></thead><tbody id="oppHot"></tbody></table></div></div>
-    <div class="opp-sec"><h3 class="opp-h">📈 Rising items (momentum)</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Price</th><th class="num">24h Vol</th><th class="num">Change</th></tr></thead><tbody id="oppRise"></tbody></table></div></div>
+    <div class="opp-sec"><h3 class="opp-h">📈 Rising items (momentum)</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Price</th><th class="num">1h move</th><th class="num">24h</th></tr></thead><tbody id="oppRise"></tbody></table></div></div>
     <div class="opp-sec"><h3 class="opp-h">💱 Widest flip margins</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Buy</th><th class="num">Sell</th><th class="num">Margin (tax)</th></tr></thead><tbody id="oppMargin"></tbody></table></div></div>
     <p class="note">Signals are derived from live GE data (current price vs 24h average, daily volume, buy/sell spread). They're a starting point, not a guarantee — a spike can mean a real opportunity or a temporary blip from a big buy/sell. Always sanity-check volume and the buy limit before committing capital. Not financial advice, in-game or otherwise.</p>
   </div>
@@ -736,7 +736,7 @@
     </div>
   </div>
 
-  <footer><span class="buildstamp">Build 2026-07-02l · PWA (home-screen icon, standalone, offline shell) · no sideways scroll anywhere on mobile</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
+  <footer><span class="buildstamp">Build 2026-07-02m · momentum engine (/5m + /1h): Rising ranked by 1h moves, ⚡ acceleration, momentum in item detail · PWA</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
 </div>
 
 <script>
@@ -1102,7 +1102,7 @@ const METHODS=[
 const fmtGp=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(2)+"m";else if(a>=1e3)s=(a/1e3).toFixed(1)+"k";else s=Math.round(a);return (n<0?"−":"")+s;};
 const titleCase=s=>s.charAt(0).toUpperCase()+s.slice(1);
 
-let nameToId={},nameToAlch={},nameToLowAlch={},nameToLimit={},volById={},avg24ById={},idToName={},latest={},priced=false,stats24=false,raw24=null,volsLoaded=false,rawVols=null,volFallback={};
+let nameToId={},nameToAlch={},nameToLowAlch={},nameToLimit={},volById={},avg24ById={},idToName={},latest={},priced=false,stats24=false,raw24=null,volsLoaded=false,rawVols=null,volFallback={},mid5mById={},mid1hById={};
 const high=n=>{const p=latest[nameToId[n.toLowerCase()]];return p&&p.high!=null?p.high:null;};
 const low=n=>{const p=latest[nameToId[n.toLowerCase()]];return p&&p.low!=null?p.low:null;};
 const alch=n=>{const v=nameToAlch[n.toLowerCase()];return v!=null?v:null;};
@@ -1312,6 +1312,12 @@ function apply24h(vj){
     n++;}
   if(n)stats24=true;
 }
+function applySnap(vj,map){
+  const vd=(vj&&vj.data)||{};
+  for(const id in vd){const o=vd[id];
+    const ah=o.avgHighPrice,al=o.avgLowPrice;
+    if(ah!=null&&al!=null)map[id]=(ah+al)/2;else if(ah!=null)map[id]=ah;else if(al!=null)map[id]=al;}
+}
 function applyVols(vj){
   const vd=(vj&&vj.data)||{};rawVols=vd;let n=0;
   for(const id in vd){
@@ -1342,20 +1348,24 @@ async function load(){
   dot.className="dot";st.textContent="Fetching live prices…";btn.disabled=true;err.classList.remove("show");
   try{
     const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),12000);
-    const [m,l,v,vo]=await Promise.all([
+    const [m,l,v,vo,f5,f1]=await Promise.all([
       fetch(`${API}/mapping`,{signal:ctrl.signal}),
       fetch(`${API}/latest`,{signal:ctrl.signal}),
       fetch(`${API}/24h`,{signal:ctrl.signal}).catch(()=>null),
-      fetch(`${API}/volumes`,{signal:ctrl.signal}).catch(()=>null)
+      fetch(`${API}/volumes`,{signal:ctrl.signal}).catch(()=>null),
+      fetch(`${API}/5m`,{signal:ctrl.signal}).catch(()=>null),
+      fetch(`${API}/1h`,{signal:ctrl.signal}).catch(()=>null)
     ]);
     clearTimeout(to);
     if(!m.ok||!l.ok) throw 0;
     const map=await m.json(),lat=await l.json();
     nameToId={};nameToAlch={};nameToLowAlch={};nameToLimit={};idToName={};map.forEach(x=>{nameToId[x.name.toLowerCase()]=x.id;idToName[x.id]=x.name;if(x.highalch!=null)nameToAlch[x.name.toLowerCase()]=x.highalch;if(x.lowalch!=null)nameToLowAlch[x.name.toLowerCase()]=x.lowalch;if(x.limit!=null)nameToLimit[x.name.toLowerCase()]=x.limit;});
     latest=lat.data||{};priced=true;
-    volById={};avg24ById={};
+    volById={};avg24ById={};mid5mById={};mid1hById={};
     if(v&&v.ok){try{apply24h(await v.json());}catch(e){}}
     if(vo&&vo.ok){try{applyVols(await vo.json());}catch(e){}}
+    if(f5&&f5.ok){try{applySnap(await f5.json(),mid5mById);}catch(e){}}
+    if(f1&&f1.ok){try{applySnap(await f1.json(),mid1hById);}catch(e){}}
     if(!stats24){setTimeout(retry24h,15000);setTimeout(retry24h,60000);}
     dot.className="dot live";
     setLiveStatus();
@@ -2094,7 +2104,10 @@ function buildMovers(){
     const chg=(avg!=null&&avg>0)?((mid-avg)/avg*100):null;
     const ha=nameToAlch[name.toLowerCase()], la=nameToLowAlch[name.toLowerCase()];
     const aprof=(ha!=null)?(ha-p.high-(nat||0)):null; // buy at insta, high-alch
-    arr.push({id,name,high:p.high,low:p.low,vol:vlm,chg,margin:Math.floor(p.high*0.98-p.low),
+    const m1=mid1hById[id],m5=mid5mById[id];
+    const s1=(m1!=null&&avg!=null&&avg>0)?((m1-avg)/avg*100):null;
+    const s5=(m5!=null&&m1!=null&&m1>0)?((m5-m1)/m1*100):null;
+    arr.push({id,name,high:p.high,low:p.low,vol:vlm,chg,s1,s5,margin:Math.floor(p.high*0.98-p.low),
       limit:nameToLimit[name.toLowerCase()],alch:ha,lalch:la,aprof});
   }
   return arr;
@@ -2107,7 +2120,7 @@ function mDetail(x){
     ["High alch value",x.alch!=null?fmtGp(x.alch):"—"],
     ["Low alch value",x.lalch!=null?fmtGp(x.lalch):"—"],
     ["High-alch profit",x.aprof!=null?((x.aprof>=0?'+':'−')+fmtGp(Math.abs(x.aprof))+" /cast"):"—"]];
-  return `<div class="d-reqs"><span class="d-h">${x.name}</span><div style="margin-top:6px">${rows.map(r=>`<div class="d-line"><span class="d-n">${r[0]}</span><span class="d-p">${r[1]}</span></div>`).join("")}</div>${usedInBlock(x.name)}<div class="spark-wrap"><div class="spark-head">Price trend · ~90 days</div><div class="spark" id="spark-${x.id}">Loading trend…</div></div></div>`;
+  return `<div class="d-reqs"><span class="d-h">${x.name}</span><div style="margin-top:6px">${rows.map(r=>`<div class="d-line"><span class="d-n">${r[0]}</span><span class="d-p">${r[1]}</span></div>`).join("")}</div>${usedInBlock(x.name)}<div class="spark-wrap"><div class="spark-head">Momentum · ${x.s5!=null?`5m ${chgHtml(x.s5)}`:""} ${x.s1!=null?`· 1h ${chgHtml(x.s1)}`:""} · 24h ${chgHtml(x.chg)}</div><div class="spark-head">Price trend · ~90 days</div><div class="spark" id="spark-${x.id}">Loading trend…</div></div></div>`;
 }
 async function loadSpark(x){
   const el=document.getElementById("spark-"+x.id);if(!el)return;
@@ -2189,8 +2202,13 @@ function oppsRender(){
   }).join("")||`<tr><td colspan="4" class="empty">No profitable recipes right now.</td></tr>`;
   // Market signals from movers
   const mv=buildMovers().filter(x=>x.vol>=1000);
-  const rise=mv.filter(x=>x.chg!=null&&x.chg>0).sort((a,b)=>b.chg-a.chg).slice(0,10);
-  document.getElementById("oppRise").innerHTML=rise.map(x=>`<tr><td><span class="m-name">${x.name}</span></td><td class="num">${fmtGp(x.high)}</td><td class="num">${fmtGp(x.vol)}</td><td class="num"><span class="gain">+${x.chg.toFixed(1)}%</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No risers.</td></tr>`;
+  const mom=x=>x.s1!=null?x.s1:(x.chg!=null?x.chg/8:null); /* 1h beats stale 24h; scaled fallback */
+  const rise=mv.filter(x=>mom(x)!=null&&mom(x)>0&&(x.chg==null||x.chg>-1)).sort((a,b)=>mom(b)-mom(a)).slice(0,10);
+  document.getElementById("oppRise").innerHTML=rise.map(x=>{
+    const acc=(x.s5!=null&&x.s1!=null&&x.s5>0.4&&x.s1>0.3)?' <span class="gain" title="accelerating in the last 5 minutes">⚡</span>':'';
+    const oneH=x.s1!=null?`<span class="gain">+${x.s1.toFixed(1)}%</span> <span class="w-since">1h</span>${acc}`:`<span class="pending">—</span>`;
+    const day=x.chg!=null?chgHtml(x.chg):`<span class="pending">—</span>`;
+    return `<tr><td><span class="m-name">${x.name}</span></td><td class="num">${fmtGp(x.high)}</td><td class="num">${oneH}</td><td class="num">${day}</td></tr>`;}).join("")||`<tr><td colspan="4" class="empty">No risers.</td></tr>`;
   const marg=mv.filter(x=>x.margin>0).sort((a,b)=>b.margin-a.margin).slice(0,10);
   document.getElementById("oppMargin").innerHTML=marg.map(x=>`<tr><td><span class="m-name">${x.name}</span></td><td class="num">${fmtGp(x.low)}</td><td class="num">${fmtGp(x.high)}</td><td class="num"><span class="gain">+${fmtGp(x.margin)}</span></td></tr>`).join("")||`<tr><td colspan="4" class="empty">No wide margins.</td></tr>`;
 }
