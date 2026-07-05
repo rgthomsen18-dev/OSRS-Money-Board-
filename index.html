@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OSRS Skilling Money Board</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15120c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Money Board">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Spline+Sans+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -278,6 +284,14 @@
     .d-line{font-size:12px}
     .d-actions{padding:10px 12px 12px}
     #opps-view table{min-width:380px}
+    #markets-view table,#flips-view table,#watch-view table{min-width:100%}
+    #markets-view th:nth-child(3),#markets-view td:nth-child(3):not([colspan]){display:none}
+    #flips-view th:nth-child(2),#flips-view td:nth-child(2):not([colspan]),
+    #flips-view th:nth-child(3),#flips-view td:nth-child(3):not([colspan]),
+    #flips-view th:nth-child(5),#flips-view td:nth-child(5):not([colspan]){display:none}
+    #watch-view th:nth-child(2),#watch-view td:nth-child(2):not([colspan]),
+    #watch-view th:nth-child(3),#watch-view td:nth-child(3):not([colspan]),
+    #watch-view th:nth-child(4),#watch-view td:nth-child(4):not([colspan]){display:none}
     .setup-grid{grid-template-columns:1fr}
     .tabs{gap:0 2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .tabs::-webkit-scrollbar{display:none}
@@ -722,7 +736,7 @@
     </div>
   </div>
 
-  <footer><span class="buildstamp">Build 2026-07-02k · Board fits phone width (no sideways scroll, stacked detail panels) · desktop layout unchanged</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
+  <footer><span class="buildstamp">Build 2026-07-02l · PWA (home-screen icon, standalone, offline shell) · no sideways scroll anywhere on mobile</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
 </div>
 
 <script>
@@ -1867,6 +1881,10 @@ function planFromMethod(mi){
   buildPlanMethods();
   const ms=document.getElementById("pMethod");if(ms){ms.value=String(mi);planState.mi=mi;}
   planCompute();
+}
+/* ---------- PWA ---------- */
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
 }
 /* ---------- Mobile note clamping ---------- */
 if(window.matchMedia&&window.matchMedia("(max-width:640px)").matches){
