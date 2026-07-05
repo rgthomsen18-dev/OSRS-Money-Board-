@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OSRS Skilling Money Board</title>
+<title>OSRS Money Board</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#15120c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -307,11 +307,11 @@
   <div class="brandrow">
     <span class="coin-mark" aria-hidden="true"><svg viewBox="0 0 48 48" width="46" height="46"><defs><radialGradient id="cg" cx="38%" cy="30%" r="78%"><stop offset="0%" stop-color="#f8dd92"/><stop offset="55%" stop-color="#e9b84d"/><stop offset="100%" stop-color="#a9781f"/></radialGradient><linearGradient id="ce" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c79c38"/><stop offset="100%" stop-color="#7e5712"/></linearGradient></defs><ellipse cx="15" cy="35" rx="11" ry="6" fill="url(#ce)" opacity=".75"/><ellipse cx="33" cy="35" rx="11" ry="6" fill="url(#ce)" opacity=".75"/><circle cx="24" cy="22" r="15.5" fill="url(#ce)"/><circle cx="24" cy="20.5" r="14" fill="url(#cg)"/><circle cx="24" cy="20.5" r="10.8" fill="none" stroke="#9c6f1d" stroke-width="1.1" opacity=".5"/><path d="M24 12.5 L26.1 18.4 L32 20.5 L26.1 22.6 L24 28.5 L21.9 22.6 L16 20.5 L21.9 18.4 Z" fill="#8a5e16" opacity=".7"/><ellipse cx="18.5" cy="14.5" rx="4" ry="2.1" fill="#fff" opacity=".34" transform="rotate(-30 18.5 14.5)"/></svg></span>
     <div class="brandtext">
-      <div class="eyebrow">Old School RuneScape · Skilling profit</div>
-      <h1>Skilling <span class="accent">Money Board</span></h1>
+      <div class="eyebrow">Old School RuneScape · Grand Exchange</div>
+      <h1>Money <span class="accent">Board</span></h1>
     </div>
   </div>
-  <p class="sub">Live GP/hr and XP/hr for skilling methods across the game, with each method's level requirement listed. Prices refresh from the OSRS Wiki API every time you open this. Throughput rates are solid estimates — the live prices do the heavy lifting.</p>
+  <p class="sub">Live Grand Exchange intelligence for Old School RuneScape — flip margins and market momentum, money-making methods ranked by real profit, boss loot values, and your own trade performance. Every number is priced live from the OSRS Wiki real-time API.</p>
 
   <div class="groups" role="tablist" aria-label="Sections">
     <button class="grp" data-group="trade" role="tab" aria-selected="true" tabindex="0">Trade</button>
@@ -737,7 +737,8 @@
     </div>
   </div>
 
-  <footer><span class="buildstamp">Build 2026-07-02n · unsynced-levels notice on Board (new-device state was silently showing everything unlocked)</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
+  <!-- dev changelog lives in git history; keep this footer user-facing only -->
+<footer><span class="buildstamp">Build 2026-07-05.1</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
