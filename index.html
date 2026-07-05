@@ -386,7 +386,8 @@
       </select></div>
   </div>
 
-  <div class="tbl-shell">
+  <div class="note" id="lvlNotice" hidden><b>Levels not synced on this device</b> — every method is being shown as available, including ones your account can't do yet. <button class="xlink" onclick="goTab('setup')">Sync your RSN in Setup →</button></div>
+    <div class="tbl-shell">
     <table>
       <thead><tr>
         <th data-sort="name">Method</th>
@@ -736,7 +737,7 @@
     </div>
   </div>
 
-  <footer><span class="buildstamp">Build 2026-07-02m · momentum engine (/5m + /1h): Rising ranked by 1h moves, ⚡ acceleration, momentum in item detail · PWA</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
+  <footer><span class="buildstamp">Build 2026-07-02n · unsynced-levels notice on Board (new-device state was silently showing everything unlocked)</span><br>Prices: OSRS Wiki real-time API (RuneLite data), read-only public data. Requirements are the skill level needed to start each method.</footer>
 </div>
 
 <script>
@@ -1230,6 +1231,8 @@ const AFK_META={afk:{label:"AFK",desc:"Minimal clicks \u2014 good for half-atten
 function afkBadge(t){const m=AFK_META[t];return m?` <span class="badge afk-${t}" title="${m.desc}">${m.label}</span>`:"";}
 function afkLine(t){const m=AFK_META[t];return m?`${m.label} \u00b7 ${m.desc}`:"";}
 function render(){
+  const ln=document.getElementById("lvlNotice");
+  if(ln)ln.hidden=Object.keys(profile.levels||{}).length>0;
   const rowsEl=document.getElementById("rows");
   let list=METHODS.map((m,i)=>({...m,_mi:i,gp:gpHr(m),rel:reliability(m)}));
   if(ui.type==="earn") list=list.filter(m=> m.loot || (m.gp==null ? m.t!=="train" : m.gp>0));
