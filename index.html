@@ -713,6 +713,7 @@
     <p class="note">Volumes and 24h-changes come from the wiki's <code>/24h</code> endpoint; live prices come from <code>/latest</code>. An item can have prices but no 24h record — its volume then shows "—". Scan to see how widespread that is, or look one item up to see its raw records.</p>
     <div class="trk-import">
       <button id="covScan" class="trk-clear">Scan coverage</button>
+      <button id="intScan" class="trk-clear">Scan data integrity</button>
       <span class="trk-msg" id="covSum"></span>
     </div>
     <div class="trk-import">
@@ -738,7 +739,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-05.1</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.1</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1099,6 +1100,13 @@ const METHODS=[
   {s:"farming",l:3,n:"Hespori",afk:"afk",t:"earn",loot:true,xp:13000,req:["Farming Guild access"],note:"Once-per-cycle boss plant -> Bottomless bucket, anima seeds, herbs (loot)."},
   // ===== Prayer — more bones =====
   {s:"prayer",l:1,n:"Offer raurg bones (gilded altar)",afk:"mod",t:"train",in:[{n:"Raurg bones",h:1300}],out:[],xp:520000,req:["Gilded altar (POH)"]},
+  // ===== MMG coverage sprint 2026-07-06 (wiki-verified recipes; rates are labeled floors) =====
+  {s:"runecraft",l:90,n:"Craft aether runes",afk:"int",t:"earn",in:[{n:"Pure essence",h:2640},{n:"Soul rune",h:2640},{n:"Aether catalyst",h:2640},{n:"Binding necklace",h:8}],out:[{n:"Aether rune",h:2640}],xp:52800},
+  {s:"smithing",l:83,n:"Smith oathplate armour",afk:"mod",t:"earn",in:[{n:"Oathplate shards",h:450},{n:"Crushed infernal shale",h:2520}],out:[{n:"Oathplate legs",h:1}],xp:30000},
+  {s:"crafting",l:1,n:"Create crystal keys",afk:"low",t:"earn",in:[{n:"Loop half of key",h:1800},{n:"Tooth half of key",h:1800}],out:[{n:"Crystal key",h:1800}],xp:0},
+  {s:"magic",l:68,n:"Enchant dragonstone amulets",afk:"low",t:"earn",in:[{n:"Dragonstone amulet",h:1700},{n:"Cosmic rune",h:1700}],out:[{n:"Amulet of glory",h:1700}],xp:132600},
+  {s:"cooking",l:85,n:"Make raw wild pies",afk:"low",t:"earn",in:[{n:"Pie shell",h:1000},{n:"Raw bear meat",h:1000},{n:"Raw chompy",h:1000},{n:"Raw rabbit",h:1000}],out:[{n:"Raw wild pie",h:1000}],xp:0},
+  {s:"cooking",l:95,n:"Make raw summer pies",afk:"low",t:"earn",in:[{n:"Pie shell",h:1000},{n:"Strawberry",h:1000},{n:"Watermelon",h:1000},{n:"Cooking apple",h:1000}],out:[{n:"Raw summer pie",h:1000}],xp:0}
 ];
 
 const fmtGp=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(2)+"m";else if(a>=1e3)s=(a/1e3).toFixed(1)+"k";else s=Math.round(a);return (n<0?"−":"")+s;};
@@ -1964,6 +1972,32 @@ mapping: yes · buy limit ${nameToLimit[q]!=null?nameToLimit[q].toLocaleString()
 /24h:   ${rec?JSON.stringify(rec):(stats24?"ABSENT — no record; 24h-change impossible for this item":"(/24h not loaded this session)")}
 /volumes: ${rawVols&&rawVols[id]!=null?JSON.stringify(rawVols[id])+(volFallback[id]?"  \u2190 used as this item's volume":""):(volsLoaded?"absent":"(not loaded this session)")}`;
 }
+function integrityScan(){
+  const s=document.getElementById("covSum"),out=document.getElementById("covOut");
+  if(!priced){s.textContent="Load prices first.";return;}
+  const refs=new Map(); // name -> first location
+  const add=(n,w)=>{if(n&&n!=="Coins"&&!refs.has(n))refs.set(n,w);};
+  METHODS.forEach(m=>{(m.in||[]).forEach(i=>add(i.n,"METHODS in · "+m.n));(m.out||[]).forEach(o=>add(o.n,"METHODS out · "+m.n));});
+  CONVERSIONS.forEach(c=>{[].concat(c.in||[],c.out||[],c.runes||[]).forEach(x=>add(x.n,"CONVERSIONS · "+c.n));});
+  BOSSES.forEach(b=>{b.drops.forEach(d=>{
+    if(d.ut)return;
+    if(d.via){add(d.via.sell,"BOSSES via · "+b.n);if(d.via.buy)add(d.via.buy,"BOSSES via · "+b.n);return;}
+    if(d.n!=="Coins")add(d.n,"BOSSES · "+b.n);
+  });(b.supplies||[]).forEach(x=>add(x.n,"BOSSES supplies · "+b.n));});
+  const bad=[],noPrice=[];
+  refs.forEach((w,n)=>{
+    const id=nameToId[n.toLowerCase()];
+    if(id==null){bad.push({n,w});return;}
+    const p=latest[id];
+    if(!p||(p.high==null&&p.low==null))noPrice.push({n,w});
+  });
+  s.textContent=`${refs.size} unique item names scanned · ${bad.length} unresolvable · ${noPrice.length} without price data`;
+  out.hidden=false;
+  out.textContent=(bad.length?"UNRESOLVABLE (typo or renamed by Jagex — row shows \u2014):\n"+bad.map(r=>`\u2717 "${r.n}" \u2014 ${r.w}`).join("\n")+"\n\n":"")
+    +(noPrice.length?"RESOLVED, NO PRICE DATA:\n"+noPrice.map(r=>`? "${r.n}" \u2014 ${r.w}`).join("\n")+"\n\n":"")
+    +((!bad.length&&!noPrice.length)?"All item references resolve with live prices \u2713":"");
+}
+document.getElementById("intScan").addEventListener("click",integrityScan);
 document.getElementById("covScan").addEventListener("click",covScan);
 document.getElementById("covLook").addEventListener("click",covLook);
 document.getElementById("covItem").addEventListener("keydown",e=>{if(e.key==="Enter")covLook();});
@@ -2565,7 +2599,27 @@ const BOSSES=[
  {n:"The Whisperer",kph:22,req:"Desert Treasure II",cmb:"90+",afk:"int",
   drops:[{n:"Blood rune",ex:120},{n:"Coins",ex:6000},{n:"Awakener's orb",ex:0.02},{n:"Chromium ingot",ex:0.0125},{n:"Virtus mask",ex:0.0008},{n:"Virtus robe top",ex:0.0008},{n:"Virtus robe bottom",ex:0.0008}],
   supplies:[{n:"Prayer potion(4)",qh:6},{n:"Super restore(4)",qh:2},{n:"Saradomin brew(4)",qh:2}],
-  note:"DT2, prayer-drain gimmick. Same tradeable table; the toughest of the four for many."}
+  note:"DT2, prayer-drain gimmick. Same tradeable table; the toughest of the four for many."},
+ {n:"Doom of Mokhaiotl (deep delve)",kph:12,req:"The Final Dawn",cmb:"115+",afk:"int",
+  drops:[{n:"Mokhaiotl cloth",ex:0.00159},{n:"Eye of ayak (uncharged)",ex:0.00159},{n:"Avernic treads",ex:0.00159},{n:"Coins",ex:60000}],
+  supplies:[{n:"Prayer potion(4)",qh:8},{n:"Saradomin brew(4)",qh:4}],
+  note:"Floors: 12 delves/hr at delve-8 unique rates (1/630 each; 1/540 deeper). Regular loot floored via coins line. Wiki MMG: ~18m/hr for experienced deep-delvers."},
+ {n:"Yama (solo)",kph:8,req:"None (Chasm of Fire)",cmb:"120+",afk:"int",
+  drops:[{n:"Oathplate helm",ex:0.00167},{n:"Oathplate chestplate",ex:0.00167},{n:"Oathplate legs",ex:0.00167},{n:"Soulflame horn",ex:0.00333},{n:"Oathplate shards",ex:0.8},{n:"Coins",ex:30000}],
+  supplies:[{n:"Super restore(4)",qh:8},{n:"Anglerfish",qh:20}],
+  note:"Solo: 1/120 unique roll → 3/5 armour piece (1/600 each), 2/5 horn (1/300). Shards avg 0.8/kill incl. lockboxes (wiki). Regular loot floored via coins. Duo scales by contribution."},
+ {n:"The Hueycoatl (solo)",kph:6,req:"Children of the Sun",cmb:"100+",afk:"mod",
+  drops:[{n:"Dragon hunter wand",ex:0.00483},{n:"Tome of earth (empty)",ex:0.01087},{n:"Hueycoatl hide",ex:0.0286},{n:"Coins",ex:25000}],
+  supplies:[{n:"Prayer potion(4)",qh:4}],
+  note:"Conservative effective rates (wand ~1/207, tome ~1/92, hide ~1/35), contribution-scaled; groups kill faster but split contribution. Regular loot floored via coins."},
+ {n:"Royal Titans (solo)",kph:18,req:"None",cmb:"90+",afk:"mod",
+  drops:[{n:"Fire element staff crown",ex:0.00667},{n:"Ice element staff crown",ex:0.00667},{n:"Giantsoul amulet",ex:0.0625,ut:1},{n:"Coins",ex:70000}],
+  supplies:[{n:"Prayer potion(4)",qh:3}],
+  note:"Solo crowns 1/75 from whichever titan you loot; alternating halves each to 1/150 effective. Prayer scrolls untradeable (not valued). Regular loot floor from ~105-112k avg kill (Drop Rate Project). Duos hit 24-48 kph."},
+ {n:"Frost dragons",kph:115,req:"Sailing 87 (Grimstone)",cmb:"100+",afk:"mod",
+  drops:[{n:"Frost dragon bones",ex:1},{n:"Coins",ex:8000}],
+  supplies:[{n:"Extended super antifire(4)",qh:2},{n:"Prayer potion(4)",qh:2}],
+  note:"115 kph floor (wiki assumes 143, max 145). Dragon metal sheets/nails and alchables folded into a conservative coins floor; wiki avg ~17.6k/kill off-task. Slayer task adds ~15%."}
 ];
 function dropValue(d){
   if(d.n==="Coins")return 1;
