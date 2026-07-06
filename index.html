@@ -739,7 +739,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.1</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.2</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1106,7 +1106,15 @@ const METHODS=[
   {s:"crafting",l:1,n:"Create crystal keys",afk:"low",t:"earn",in:[{n:"Loop half of key",h:1800},{n:"Tooth half of key",h:1800}],out:[{n:"Crystal key",h:1800}],xp:0},
   {s:"magic",l:68,n:"Enchant dragonstone amulets",afk:"low",t:"earn",in:[{n:"Dragonstone amulet",h:1700},{n:"Cosmic rune",h:1700}],out:[{n:"Amulet of glory",h:1700}],xp:132600},
   {s:"cooking",l:85,n:"Make raw wild pies",afk:"low",t:"earn",in:[{n:"Pie shell",h:1000},{n:"Raw bear meat",h:1000},{n:"Raw chompy",h:1000},{n:"Raw rabbit",h:1000}],out:[{n:"Raw wild pie",h:1000}],xp:0},
-  {s:"cooking",l:95,n:"Make raw summer pies",afk:"low",t:"earn",in:[{n:"Pie shell",h:1000},{n:"Strawberry",h:1000},{n:"Watermelon",h:1000},{n:"Cooking apple",h:1000}],out:[{n:"Raw summer pie",h:1000}],xp:0}
+  {s:"cooking",l:95,n:"Make raw summer pies",afk:"low",t:"earn",in:[{n:"Pie shell",h:1000},{n:"Strawberry",h:1000},{n:"Watermelon",h:1000},{n:"Cooking apple",h:1000}],out:[{n:"Raw summer pie",h:1000}],xp:0},
+  // ===== Batches 3-4 (2026-07-06): shop arbitrage + verified skilling =====
+  {s:"errands",l:1,n:"Buy Relicym's balm (Uglug Nar)",afk:"low",t:"earn",fee:330000,out:[{n:"Relicym's balm(3)",h:1500}],xp:0,req:["Zogre Flesh Eaters"],note:"Shop base 200gp, rises with stock bought; ~50/world then hop. 1,500/hr and 220gp avg cost are floors. Decanting to (4) with Bob Barter adds margin. Thin demand — watch volume."},
+  {s:"errands",l:1,n:"Buy kegs of beer (Rellekka)",afk:"low",t:"earn",fee:135000,out:[{n:"Keg of beer",h:300}],xp:0,note:"Thora the Barkeep, 325-575gp rising with purchases; 300/hr at 450gp avg are floors. Novelty item — genuinely thin market, check volume before scaling."},
+  {s:"errands",l:1,n:"Fill bullseye lanterns",afk:"mod",t:"earn",in:[{n:"Bullseye lantern (empty)",h:800},{n:"Swamp tar",h:800}],out:[{n:"Bullseye lantern",h:800}],xp:0,note:"Lamp-oil still at the Rimmington chemist; POH nearby strongly recommended. 800/hr floor — lanterns are heavy, bring graceful."},
+  {s:"magic",l:70,n:"Degrime grimy toadflax",afk:"low",t:"earn",in:[{n:"Grimy toadflax",h:16200},{n:"Nature rune",h:600}],out:[{n:"Toadflax",h:16200}],xp:49800,req:["A Kingdom Divided","Herblore 30"],note:"Arceuus spellbook, 600 casts/hr on full inventories, earth staff assumed. Grants half Herblore XP too (not counted)."},
+  {s:"magic",l:70,n:"Degrime grimy ranarr",afk:"low",t:"earn",in:[{n:"Grimy ranarr weed",h:16200},{n:"Nature rune",h:600}],out:[{n:"Ranarr weed",h:16200}],xp:49800,req:["A Kingdom Divided","Herblore 25"],note:"Same cast cycle as toadflax; margins vary — check both."},
+  {s:"fletching",l:72,n:"Fletch moonlight antler bolts",afk:"low",t:"earn",in:[{n:"Moonlight antelope antler",h:1800}],out:[{n:"Moonlight antler bolts",h:21600}],xp:21780,note:"12 bolts + 12.1 xp per antler; 1,800 antlers/hr with banking (wiki)."},
+  {s:"fletching",l:62,n:"Fletch sunlight antler bolts",afk:"low",t:"earn",in:[{n:"Sunlight antelope antler",h:1800}],out:[{n:"Sunlight antler bolts",h:21600}],xp:18000,note:"12 bolts + 10 xp per antler; same 1,800/hr cycle as moonlight."}
 ];
 
 const fmtGp=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(2)+"m";else if(a>=1e3)s=(a/1e3).toFixed(1)+"k";else s=Math.round(a);return (n<0?"−":"")+s;};
@@ -1164,6 +1172,7 @@ function gpHr(m){
   let rev=0,cost=0,miss=false;
   (m.out||[]).forEach(o=>{const p=sellPrice(o.n);if(p==null)miss=true;else rev+=p*o.h*0.98;});
   (m.in||[]).forEach(i=>{const p=buyPrice(i.n);if(p==null)miss=true;else cost+=p*i.h;});
+  if(m.fee)cost+=m.fee;
   if(miss) return null;
   return rev-cost;
 }
@@ -1206,10 +1215,11 @@ function detailHtml(m){
     const ins=(m.in&&m.in.length)
       ? m.in.map(it=>{const v=vol(it.n);return `<div class="d-line"><span class="d-q">${it.h.toLocaleString()}/hr</span><span class="d-n">${it.n}</span><span class="d-p">buy ${buyPrice(it.n)==null?'—':fmtGp(buyPrice(it.n))} · <span class="d-vol">${v==null?'no vol':fmtGp(v)+'/day'}</span></span></div>`;}).join("")
       : `<div class="d-line d-none">Gathered — no inputs</div>`;
+    const feeLine=m.fee?`<div class="d-line"><span class="d-q">fixed</span><span class="d-n">Shop / errand cost</span><span class="d-p">−${fmtGp(m.fee)}/hr</span></div>`:"";
     const outs=(m.out&&m.out.length)
       ? m.out.map(it=>{const av=alch(it.n);const v=vol(it.n);return `<div class="d-line"><span class="d-q">${it.h.toLocaleString()}/hr</span><span class="d-n">${it.n}</span><span class="d-p">sell ${sellPrice(it.n)==null?'—':fmtGp(sellPrice(it.n))}${av!=null?` · alch ${fmtGp(av)}`:''} · <span class="d-vol">${v==null?'no vol':fmtGp(v)+'/day'}</span></span></div>`;}).join("")
       : `<div class="d-line d-none">No sellable output — trains the skill</div>`;
-    body=`<div class="detail-wrap"><div class="d-col"><div class="d-h">Inputs</div>${ins}</div><div class="d-arrow">→</div><div class="d-col"><div class="d-h">Output</div>${outs}</div></div>`;
+    body=`<div class="detail-wrap"><div class="d-col"><div class="d-h">Inputs</div>${ins}${feeLine}</div><div class="d-arrow">→</div><div class="d-col"><div class="d-h">Output</div>${outs}</div></div>`;
   }
   // logistics block
   let logHtml="";
