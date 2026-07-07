@@ -73,6 +73,17 @@
   thead th{background:var(--bg2);text-align:left;padding:11px 13px;font-family:"Spline Sans Mono",monospace;
     font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
   .w-since{font-family:"Spline Sans Mono",monospace;font-size:10.5px;opacity:.9;white-space:nowrap}
+  .tab{position:relative}
+  .al-badge{position:absolute;top:3px;right:1px;background:var(--gold);color:#1a1206;font-size:9.5px;
+    font-weight:700;border-radius:999px;padding:1px 5px;line-height:1.35;pointer-events:none}
+  .al-sec{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft)}
+  .al-t{font-family:"Spline Sans Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .al-lb{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+  .al-in{font-family:"Spline Sans Mono",monospace;font-size:11px;width:96px;background:var(--stone);color:var(--ink);
+    border:1px solid var(--line-soft);border-radius:7px;padding:6px 9px}
+  .al-in:focus-visible{outline:2px solid var(--arcane);outline-offset:1px}
+  .al-note{font-size:10px;color:var(--faint);flex-basis:100%}
+  .al-hit td{background:rgba(233,184,77,.055)}
   .cov-in{font-family:"Spline Sans Mono",monospace;font-size:12px;background:var(--stone);color:var(--ink);
     border:1px solid var(--line-soft);border-radius:8px;padding:9px 12px;min-width:220px}
   .cov-in:focus-visible{outline:2px solid var(--arcane);outline-offset:1px}
@@ -739,7 +750,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.2</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.3</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1361,7 +1372,7 @@ async function retry24h(){
   try{
     const r=await fetch(`${API}/24h`);if(!r.ok)return;
     apply24h(await r.json());
-    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();}
+    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();}
   }catch(e){}
 }
 async function load(){
@@ -1394,7 +1405,7 @@ async function load(){
   }catch(e){
     dot.className="dot err";st.textContent="Live prices unavailable.";err.classList.add("show");priced=false;
   }
-  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();renderValidation();
+  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();renderValidation();
 }
 
 document.getElementById("skillSel").addEventListener("change",e=>{ui.skill=e.target.value;render();});
@@ -1688,7 +1699,7 @@ document.getElementById("cvRows").addEventListener("click",e=>{
 /* ---------- Profile, efficiency, level-gating, diagnostics ---------- */
 let profile={rsn:"",levels:{},eff:1,hideLocked:false,watch:[],xp:{}};
 const PKEY="fargrimer_profile_v1";
-function pLoad(){try{const r=localStorage.getItem(PKEY);if(r)profile=Object.assign({rsn:"",levels:{},eff:1,hideLocked:false,watch:[],xp:{}},JSON.parse(r));}catch(e){}profile.watch=profile.watch||[];profile.xp=profile.xp||{};}
+function pLoad(){try{const r=localStorage.getItem(PKEY);if(r)profile=Object.assign({rsn:"",levels:{},eff:1,hideLocked:false,watch:[],xp:{}},JSON.parse(r));}catch(e){}profile.watch=profile.watch||[];profile.xp=profile.xp||{};profile.alerts=profile.alerts||{};}
 function pSave(){try{localStorage.setItem(PKEY,JSON.stringify(profile));}catch(e){}}
 function isWatched(name){return (profile.watch||[]).indexOf(name)>=0;}
 function toggleWatch(name){profile.watch=profile.watch||[];const i=profile.watch.indexOf(name);if(i>=0)profile.watch.splice(i,1);else profile.watch.push(name);pSave();flipRender();mRender();watchRender();}
@@ -1927,6 +1938,46 @@ if(window.matchMedia&&window.matchMedia("(max-width:640px)").matches){
     }
   });
 }
+/* ---------- Price alerts ---------- */
+function parseGp(s){s=String(s||"").trim().toLowerCase().replace(/,/g,"");if(!s)return null;
+  const m=s.match(/^([\d.]+)\s*([kmb])?$/);if(!m)return null;
+  const v=parseFloat(m[1]);if(!isFinite(v))return null;
+  return Math.round(v*({k:1e3,m:1e6,b:1e9}[m[2]]||1));}
+function alertState(x){
+  const a=profile.alerts&&profile.alerts[x.name];if(!a)return null;
+  const mid=(x.high+x.low)/2;
+  if(a.hi!=null&&mid>=a.hi)return{k:"hi",v:a.hi};
+  if(a.lo!=null&&mid<=a.lo)return{k:"lo",v:a.lo};
+  return null;}
+function alertChip(x){const st=alertState(x);if(!st)return"";
+  return ` <span class="w-since ${st.k==="hi"?"gain":"loss"}">${st.k==="hi"?"\u25b2 above":"\u25bc below"} ${fmtGp(st.v)}</span>`;}
+function alertHtml(x){
+  const a=(profile.alerts&&profile.alerts[x.name])||{};
+  return `<div class="al-sec"><span class="al-t">Price alerts</span>
+    <label class="al-lb">above <input class="al-in" data-al="hi" data-name="${x.name}" placeholder="e.g. 14.5m" value="${a.hi!=null?fmtGp(a.hi):""}"></label>
+    <label class="al-lb">below <input class="al-in" data-al="lo" data-name="${x.name}" placeholder="e.g. 12m" value="${a.lo!=null?fmtGp(a.lo):""}"></label>
+    <span class="al-note">flags the row and Watch tab when the mid price crosses; setting one adds the item to your watchlist</span></div>`;}
+function alertCount(){
+  if(!priced||!profile.alerts)return 0;
+  const byName={};buildMovers().forEach(m=>{byName[m.name]=m;});
+  let n=0;(profile.watch||[]).forEach(nm=>{const x=byName[nm];if(x&&alertState(x))n++;});
+  return n;}
+function updateAlertBadge(){
+  const t=document.getElementById("tab-watch");if(!t)return;
+  let b=t.querySelector(".al-badge");const n=alertCount();
+  if(!n){if(b)b.remove();return;}
+  if(!b){b=document.createElement("span");b.className="al-badge";t.appendChild(b);}
+  b.textContent=n;}
+document.addEventListener("change",e=>{
+  const t=e.target;if(!t.classList||!t.classList.contains("al-in"))return;
+  const name=t.dataset.name,kind=t.dataset.al,v=parseGp(t.value);
+  profile.alerts=profile.alerts||{};
+  const a=profile.alerts[name]||(profile.alerts[name]={});
+  a[kind]=v;
+  if(a.hi==null&&a.lo==null)delete profile.alerts[name];
+  else if(!isWatched(name))profile.watch.push(name);
+  pSave();updateAlertBadge();watchRender();
+});
 /* ---------- Device sync + watch deltas ---------- */
 const WSNAP="osrs_watchsnap_v1";
 let wPrev=null;
@@ -2125,7 +2176,7 @@ function watchRender(){
     const chgCell=chgHtml(x.chg);
     const mCell=x.margin>0?`<span class="gain">+${fmtGp(x.margin)}</span>`:`<span class="loss">${fmtGp(x.margin)}</span>`;
     const pCell=(x.limit!=null&&x.margin>0)?`<span class="gain">+${fmtGp(x.phr)}</span>`:`<span class="pending">—</span>`;
-    return `<tr class="wrow-main" data-wi="${i}"><td>${watchStar(x.name)}<img class="ico" src="${ICO}${x.id}.png" loading="lazy" onerror="this.style.display='none'" alt=""><span class="m-name">${x.name}</span>${sinceChip(x)}</td><td class="num">${fmtGp(x.low)}</td><td class="num">${fmtGp(x.high)}</td><td class="num">${mCell}</td><td class="num">${chgCell}</td><td class="num">${pCell}</td></tr><tr class="row-detail" id="wd-${i}" hidden><td colspan="6">${mDetail(x)}</td></tr>`;
+    return `<tr class="wrow-main${alertState(x)?" al-hit":""}" data-wi="${i}"><td>${watchStar(x.name)}<img class="ico" src="${ICO}${x.id}.png" loading="lazy" onerror="this.style.display='none'" alt=""><span class="m-name">${x.name}</span>${alertChip(x)}${sinceChip(x)}</td><td class="num">${fmtGp(x.low)}</td><td class="num">${fmtGp(x.high)}</td><td class="num">${mCell}</td><td class="num">${chgCell}</td><td class="num">${pCell}</td></tr><tr class="row-detail" id="wd-${i}" hidden><td colspan="6">${mDetail(x)}</td></tr>`;
   }).join("")+(missing.length?`<tr><td colspan="6" class="empty">Waiting on live data for: ${missing.join(", ")}</td></tr>`:"");
 }
 wireDetailRows("wRows","tr.wrow-main","wd-","wi",()=>wLast);
@@ -2168,7 +2219,7 @@ function mDetail(x){
     ["High alch value",x.alch!=null?fmtGp(x.alch):"—"],
     ["Low alch value",x.lalch!=null?fmtGp(x.lalch):"—"],
     ["High-alch profit",x.aprof!=null?((x.aprof>=0?'+':'−')+fmtGp(Math.abs(x.aprof))+" /cast"):"—"]];
-  return `<div class="d-reqs"><span class="d-h">${x.name}</span><div style="margin-top:6px">${rows.map(r=>`<div class="d-line"><span class="d-n">${r[0]}</span><span class="d-p">${r[1]}</span></div>`).join("")}</div>${usedInBlock(x.name)}<div class="spark-wrap"><div class="spark-head">Momentum · ${x.s5!=null?`5m ${chgHtml(x.s5)}`:""} ${x.s1!=null?`· 1h ${chgHtml(x.s1)}`:""} · 24h ${chgHtml(x.chg)}</div><div class="spark-head">Price trend · ~90 days</div><div class="spark" id="spark-${x.id}">Loading trend…</div></div></div>`;
+  return `<div class="d-reqs"><span class="d-h">${x.name}</span><div style="margin-top:6px">${rows.map(r=>`<div class="d-line"><span class="d-n">${r[0]}</span><span class="d-p">${r[1]}</span></div>`).join("")}</div>${usedInBlock(x.name)}${alertHtml(x)}<div class="spark-wrap"><div class="spark-head">Momentum · ${x.s5!=null?`5m ${chgHtml(x.s5)}`:""} ${x.s1!=null?`· 1h ${chgHtml(x.s1)}`:""} · 24h ${chgHtml(x.chg)}</div><div class="spark-head">Price trend · ~90 days</div><div class="spark" id="spark-${x.id}">Loading trend…</div></div></div>`;
 }
 async function loadSpark(x){
   const el=document.getElementById("spark-"+x.id);if(!el)return;
