@@ -750,7 +750,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.3</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.4</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1125,7 +1125,11 @@ const METHODS=[
   {s:"magic",l:70,n:"Degrime grimy toadflax",afk:"low",t:"earn",in:[{n:"Grimy toadflax",h:16200},{n:"Nature rune",h:600}],out:[{n:"Toadflax",h:16200}],xp:49800,req:["A Kingdom Divided","Herblore 30"],note:"Arceuus spellbook, 600 casts/hr on full inventories, earth staff assumed. Grants half Herblore XP too (not counted)."},
   {s:"magic",l:70,n:"Degrime grimy ranarr",afk:"low",t:"earn",in:[{n:"Grimy ranarr weed",h:16200},{n:"Nature rune",h:600}],out:[{n:"Ranarr weed",h:16200}],xp:49800,req:["A Kingdom Divided","Herblore 25"],note:"Same cast cycle as toadflax; margins vary — check both."},
   {s:"fletching",l:72,n:"Fletch moonlight antler bolts",afk:"low",t:"earn",in:[{n:"Moonlight antelope antler",h:1800}],out:[{n:"Moonlight antler bolts",h:21600}],xp:21780,note:"12 bolts + 12.1 xp per antler; 1,800 antlers/hr with banking (wiki)."},
-  {s:"fletching",l:62,n:"Fletch sunlight antler bolts",afk:"low",t:"earn",in:[{n:"Sunlight antelope antler",h:1800}],out:[{n:"Sunlight antler bolts",h:21600}],xp:18000,note:"12 bolts + 10 xp per antler; same 1,800/hr cycle as moonlight."}
+  {s:"fletching",l:62,n:"Fletch sunlight antler bolts",afk:"low",t:"earn",in:[{n:"Sunlight antelope antler",h:1800}],out:[{n:"Sunlight antler bolts",h:21600}],xp:18000,note:"12 bolts + 10 xp per antler; same 1,800/hr cycle as moonlight."},
+  // ===== Verification pass (2026-07-06): previously deferred, now wiki-confirmed =====
+  {s:"errands",l:1,n:"Buy monkey nuts (Ape Atoll)",afk:"low",t:"earn",fee:1800,out:[{n:"Monkey nuts",h:1000}],xp:0,req:["Monkey Madness II"],note:"Solihib's Food Stall, 3-14gp each rising with stock, ~200/world then hop. 1,000/hr and 9gp avg cost are floors. Used only for spirit-tree protection — genuinely thin, unpredictable demand; check volume before scaling."},
+  {s:"crafting",l:1,n:"Make toy cats (POH workshop)",afk:"mod",t:"earn",in:[{n:"Clockwork",h:400},{n:"Plank",h:400}],out:[{n:"Toy cat",h:400}],xp:0,req:["POH crafting table","Demon butler (recommended)"],note:"Clockwork toy → clockwork cat at the POH crafting table with demon butler banking. 400/hr floor (butler cycle). Sold to other players via GE — thin market."},
+  {s:"mining",l:1,n:"Mine lead ore (Pandemonium)",afk:"mod",t:"earn",out:[{n:"Lead ore",h:1300}],xp:0,req:["Sailing / Pandemonium cave access"],note:"Power-bank full inventories at the Bank Crab outside the cave. 1,300/hr floor; low-level gathering method, no inputs. New item — verify live volume before committing."}
 ];
 
 const fmtGp=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(2)+"m";else if(a>=1e3)s=(a/1e3).toFixed(1)+"k";else s=Math.round(a);return (n<0?"−":"")+s;};
