@@ -763,7 +763,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.5</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.6</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -2057,6 +2057,7 @@ function integrityScan(){
   const add=(n,w)=>{if(n&&n!=="Coins"&&!refs.has(n))refs.set(n,w);};
   METHODS.forEach(m=>{(m.in||[]).forEach(i=>add(i.n,"METHODS in · "+m.n));(m.out||[]).forEach(o=>add(o.n,"METHODS out · "+m.n));});
   CONVERSIONS.forEach(c=>{[].concat(c.in||[],c.out||[],c.runes||[]).forEach(x=>add(x.n,"CONVERSIONS · "+c.n));});
+  SETS.forEach(s=>{add(s.n,"SETS · "+s.n);s.pieces.forEach(p=>add(p,"SETS pieces · "+s.n));});
   BOSSES.forEach(b=>{b.drops.forEach(d=>{
     if(d.ut)return;
     if(d.via){add(d.via.sell,"BOSSES via · "+b.n);if(d.via.buy)add(d.via.buy,"BOSSES via · "+b.n);return;}
@@ -2105,7 +2106,19 @@ const SETS=[
   {n:"Guthan's armour set",pieces:["Guthan's helm","Guthan's platebody","Guthan's chainskirt","Guthan's warspear"]},
   {n:"Karil's armour set",pieces:["Karil's coif","Karil's leathertop","Karil's leatherskirt","Karil's crossbow"]},
   {n:"Torag's armour set",pieces:["Torag's helm","Torag's platebody","Torag's platelegs","Torag's hammers"]},
-  {n:"Verac's armour set",pieces:["Verac's helm","Verac's brassard","Verac's plateskirt","Verac's flail"]}
+  {n:"Verac's armour set",pieces:["Verac's helm","Verac's brassard","Verac's plateskirt","Verac's flail"]},
+  {n:"Rune armour set (lg)",pieces:["Rune platebody","Rune platelegs","Rune full helm","Rune kiteshield"]},
+  {n:"Rune armour set (sk)",pieces:["Rune platebody","Rune plateskirt","Rune full helm","Rune kiteshield"]},
+  {n:"Adamant armour set (lg)",pieces:["Adamant platebody","Adamant platelegs","Adamant full helm","Adamant kiteshield"]},
+  {n:"Adamant armour set (sk)",pieces:["Adamant platebody","Adamant plateskirt","Adamant full helm","Adamant kiteshield"]},
+  {n:"Mithril armour set (lg)",pieces:["Mithril platebody","Mithril platelegs","Mithril full helm","Mithril kiteshield"]},
+  {n:"Mithril armour set (sk)",pieces:["Mithril platebody","Mithril plateskirt","Mithril full helm","Mithril kiteshield"]},
+  {n:"Black armour set (lg)",pieces:["Black platebody","Black platelegs","Black full helm","Black kiteshield"]},
+  {n:"Black armour set (sk)",pieces:["Black platebody","Black plateskirt","Black full helm","Black kiteshield"]},
+  {n:"Steel armour set (lg)",pieces:["Steel platebody","Steel platelegs","Steel full helm","Steel kiteshield"]},
+  {n:"Steel armour set (sk)",pieces:["Steel platebody","Steel plateskirt","Steel full helm","Steel kiteshield"]},
+  {n:"Dragon armour set (lg)",pieces:["Dragon platebody","Dragon platelegs","Dragon full helm","Dragon kiteshield"]},
+  {n:"Dragon armour set (sk)",pieces:["Dragon platebody","Dragon plateskirt","Dragon full helm","Dragon kiteshield"]}
 ];
 function setsRender(){
   const el=document.getElementById("setRows");if(!el)return;
