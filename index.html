@@ -335,6 +335,7 @@
     <button class="tab" id="tab-watch" data-view="watch" role="tab" aria-selected="false" tabindex="-1" aria-controls="watch-view"><svg class="tab-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2l1.6 3.9 4.2.3-3.2 2.7 1 4.1L8 11.7 4.2 13.3l1-4.1L2 6.4l4.2-.3z"/></g></svg>Watch</button>
     <button class="tab" id="tab-markets" data-view="markets" role="tab" aria-selected="true" tabindex="0" aria-controls="markets-view"><svg class="tab-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13h11"/><path d="M4.5 13V8.5M8 13V3.5M11.5 13V6.5"/></g></svg>Markets</button>
     <button class="tab" id="tab-tracker" data-view="tracker" role="tab" aria-selected="false" tabindex="-1" aria-controls="tracker-view"><svg class="tab-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="2.4" width="9.6" height="11.2" rx="1.2"/><path d="M5.4 6h5.2M5.4 8.3h5.2M5.4 10.6h3.2"/></g></svg>Tracker</button>
+    <button class="tab" id="tab-sets" data-view="sets" role="tab" aria-selected="false" tabindex="-1" aria-controls="sets-view"><svg class="tab-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="2.4" width="5" height="5" rx="0.8"/><rect x="8.6" y="2.4" width="5" height="5" rx="0.8"/><rect x="2.4" y="8.6" width="5" height="5" rx="0.8"/><rect x="8.6" y="8.6" width="5" height="5" rx="0.8"/></g></svg>Sets</button>
   </div>
   <div class="tabs" data-group="earn" role="tablist" aria-label="Earn" hidden>
     <button class="tab" id="tab-board" data-view="board" role="tab" aria-selected="false" tabindex="-1" aria-controls="board-view"><svg class="tab-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="8" cy="5.4" rx="5" ry="2.3"/><path d="M3 5.4v4.3c0 1.27 2.24 2.3 5 2.3s5-1.03 5-2.3V5.4"/></g></svg>Board</button>
@@ -532,6 +533,18 @@
     <p class="note"><b>Manual:</b> add a trade and it tallies net profit (sell minus 2% tax, minus buy). <b>Import:</b> load your Flipping Utilities export — the JSON file (<code>.runelite/flipping/&lt;name&gt;.json</code>) or a CSV, via the file button or by pasting rows above — and it pulls your completed buys/sells automatically. Data is saved in this browser (works in the downloaded/hosted version). The import is best-effort across plugin versions — if totals look off, share a small snippet of the JSON and I'll tune it.</p>
   </div>
 
+  <div id="sets-view" role="tabpanel" aria-labelledby="tab-sets" tabindex="0" hidden>
+    <p class="sub">Item-set arbitrage. Buy the four pieces, exchange them for the packed set via a GE clerk, sell the set — or the reverse. Both directions priced live with the 2% sell tax on whichever side you sell.</p>
+    <div class="controls">
+      <div class="ctl"><label>Direction</label>
+        <select id="setDir"><option value="best">Best per set</option><option value="pack">Pack (pieces → set)</option><option value="unpack">Unpack (set → pieces)</option></select></div>
+    </div>
+    <div class="tbl-shell"><table>
+      <thead><tr><th>Set</th><th class="num">Pieces cost</th><th class="num">Set price</th><th class="num">Best margin</th></tr></thead>
+      <tbody id="setRows"></tbody>
+    </table></div>
+    <p class="note">Margins are per set and ignore buy limits — most set components have small limits, so treat this as opportunity-spotting, not bulk throughput. "Pack" buys pieces (at ask) and sells the set (taxed); "unpack" buys the set and sells pieces (taxed). Only fully-repaired Barrows pieces are tradeable.</p>
+  </div>
   <div id="flips-view" role="tabpanel" aria-labelledby="tab-flips" tabindex="0" hidden>
     <div class="controls">
       <div class="ctl"><label>Search</label>
@@ -750,7 +763,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.4</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.5</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1376,7 +1389,7 @@ async function retry24h(){
   try{
     const r=await fetch(`${API}/24h`);if(!r.ok)return;
     apply24h(await r.json());
-    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();}
+    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();}
   }catch(e){}
 }
 async function load(){
@@ -1409,7 +1422,7 @@ async function load(){
   }catch(e){
     dot.className="dot err";st.textContent="Live prices unavailable.";err.classList.add("show");priced=false;
   }
-  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();renderValidation();
+  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();renderValidation();
 }
 
 document.getElementById("skillSel").addEventListener("change",e=>{ui.skill=e.target.value;render();});
@@ -2063,6 +2076,7 @@ function integrityScan(){
     +((!bad.length&&!noPrice.length)?"All item references resolve with live prices \u2713":"");
 }
 document.getElementById("intScan").addEventListener("click",integrityScan);
+const setDirEl=document.getElementById("setDir");if(setDirEl)setDirEl.addEventListener("change",setsRender);
 document.getElementById("covScan").addEventListener("click",covScan);
 document.getElementById("covLook").addEventListener("click",covLook);
 document.getElementById("covItem").addEventListener("keydown",e=>{if(e.key==="Enter")covLook();});
@@ -2084,8 +2098,42 @@ document.getElementById("syncApply").addEventListener("click",()=>{
   if(n)setTimeout(()=>location.reload(),700);
 });
 
+/* ---------- Item-set arbitrage ---------- */
+const SETS=[
+  {n:"Dharok's armour set",pieces:["Dharok's helm","Dharok's platebody","Dharok's platelegs","Dharok's greataxe"]},
+  {n:"Ahrim's armour set",pieces:["Ahrim's hood","Ahrim's robetop","Ahrim's robeskirt","Ahrim's staff"]},
+  {n:"Guthan's armour set",pieces:["Guthan's helm","Guthan's platebody","Guthan's chainskirt","Guthan's warspear"]},
+  {n:"Karil's armour set",pieces:["Karil's coif","Karil's leathertop","Karil's leatherskirt","Karil's crossbow"]},
+  {n:"Torag's armour set",pieces:["Torag's helm","Torag's platebody","Torag's platelegs","Torag's hammers"]},
+  {n:"Verac's armour set",pieces:["Verac's helm","Verac's brassard","Verac's plateskirt","Verac's flail"]}
+];
+function setsRender(){
+  const el=document.getElementById("setRows");if(!el)return;
+  if(!priced){needPrices(el,4);return;}
+  const dir=(document.getElementById("setDir")||{}).value||"best";
+  const rows=SETS.map(s=>{
+    const setBuy=buyPrice(s.n), setSell=sellPrice(s.n);
+    let pieceAsk=0,pieceBid=0,miss=false;
+    s.pieces.forEach(p=>{const a=buyPrice(p),b=sellPrice(p);if(a==null||b==null)miss=true;else{pieceAsk+=a;pieceBid+=b;}});
+    if(miss||setBuy==null||setSell==null)return {s,bad:true};
+    const pack=Math.round(setSell*0.98-pieceAsk);        // buy pieces, sell set
+    const unpack=Math.round(pieceBid*0.98-setBuy);       // buy set, sell pieces
+    return {s,pieceAsk,setSell,setBuy,pack,unpack};
+  });
+  const val=r=>r.bad?-1e15:(dir==="pack"?r.pack:dir==="unpack"?r.unpack:Math.max(r.pack,r.unpack));
+  rows.sort((a,b)=>val(b)-val(a));
+  el.innerHTML=rows.map(r=>{
+    if(r.bad)return `<tr><td>${r.s.n}</td><td class="num">—</td><td class="num">—</td><td class="num"><span class="pending">no price</span></td></tr>`;
+    const best=dir==="pack"?{v:r.pack,k:"pack"}:dir==="unpack"?{v:r.unpack,k:"unpack"}:(r.pack>=r.unpack?{v:r.pack,k:"pack"}:{v:r.unpack,k:"unpack"});
+    const cls=best.v>=0?"gain":"loss";
+    const tag=`<span class="w-since ${cls}">${best.k}</span>`;
+    return `<tr><td><span class="m-name">${r.s.n.replace("'s armour set","")}</span> ${tag}</td>`+
+      `<td class="num">${fmtGp(r.pieceAsk)}</td><td class="num">${fmtGp(r.setSell)}</td>`+
+      `<td class="num"><span class="${cls}">${best.v>=0?"+":"−"}${fmtGp(Math.abs(best.v))}</span></td></tr>`;
+  }).join("");
+}
 /* ---------- Grouped navigation ---------- */
-const TAB_GROUP={flips:"trade",watch:"trade",markets:"trade",tracker:"trade",
+const TAB_GROUP={flips:"trade",watch:"trade",markets:"trade",tracker:"trade",sets:"trade",
   board:"earn",bosses:"earn",opps:"earn",alch:"earn",convert:"earn",combat:"earn",
   plan:"plan",session:"plan",setup:"setup"};
 const NAV_VIEWS=Object.keys(TAB_GROUP);
@@ -2112,6 +2160,7 @@ function activateTab(t){
   if(v==="opps") oppsRender();
   if(v==="bosses") bossRender();
   if(v==="setup") setupRender();
+  if(v==="sets") setsRender();
   const av=document.getElementById(v+"-view");
   if(av){av.classList.remove("view-anim");void av.offsetWidth;av.classList.add("view-anim");}
 }
