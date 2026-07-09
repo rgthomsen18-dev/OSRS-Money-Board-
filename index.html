@@ -763,7 +763,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.6</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.7</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -2118,7 +2118,15 @@ const SETS=[
   {n:"Steel armour set (lg)",pieces:["Steel platebody","Steel platelegs","Steel full helm","Steel kiteshield"]},
   {n:"Steel armour set (sk)",pieces:["Steel platebody","Steel plateskirt","Steel full helm","Steel kiteshield"]},
   {n:"Dragon armour set (lg)",pieces:["Dragon platebody","Dragon platelegs","Dragon full helm","Dragon kiteshield"]},
-  {n:"Dragon armour set (sk)",pieces:["Dragon platebody","Dragon plateskirt","Dragon full helm","Dragon kiteshield"]}
+  {n:"Dragon armour set (sk)",pieces:["Dragon platebody","Dragon plateskirt","Dragon full helm","Dragon kiteshield"]},
+  {n:"Armadyl armour set",pieces:["Armadyl helmet","Armadyl chestplate","Armadyl chainskirt"]},
+  {n:"Bandos armour set",pieces:["Bandos chestplate","Bandos tassets","Bandos boots"]},
+  {n:"Ancestral robes set",pieces:["Ancestral hat","Ancestral robe top","Ancestral robe bottom"]},
+  {n:"Virtus armour set",pieces:["Virtus mask","Virtus robe top","Virtus robe bottom"]},
+  {n:"Inquisitor's armour set",pieces:["Inquisitor's great helm","Inquisitor's hauberk","Inquisitor's plateskirt"]},
+  {n:"Justiciar armour set",pieces:["Justiciar faceguard","Justiciar chestguard","Justiciar legguards"]},
+  {n:"Masori armour set (f)",pieces:["Masori mask (f)","Masori body (f)","Masori chaps (f)"]},
+  {n:"Obsidian armour set",pieces:["Obsidian helmet","Obsidian platebody","Obsidian platelegs"]}
 ];
 function setsRender(){
   const el=document.getElementById("setRows");if(!el)return;
