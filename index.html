@@ -389,6 +389,8 @@
       </div></div>
     <div class="ctl"><label>My level</label>
       <div class="achk"><label><input type="checkbox" id="hideLockedChk"/> Hide locked</label></div></div>
+      <div class="ctl"><label>My bank</label>
+      <div class="achk"><label><input type="checkbox" id="affordChk"/> <span id="affordLbl">Affordable only</span></label></div></div>
     <div class="ctl"><label>Sort by</label>
       <select id="sortSel">
         <option value="gp">GP / hr</option>
@@ -543,6 +545,12 @@
       <thead><tr><th>Set</th><th class="num">Pieces cost</th><th class="num">Set price</th><th class="num">Best margin</th></tr></thead>
       <tbody id="setRows"></tbody>
     </table></div>
+    <h3 class="opp-h">Potion decanting</h3>
+    <div class="tbl-shell"><table>
+      <thead><tr><th>Potion</th><th class="num">Buy as</th><th class="num">(4) sells</th><th class="num">Margin / (4)</th></tr></thead>
+      <tbody id="decRows"></tbody>
+    </table></div>
+    <p class="note">Decanting is free at Bob Barter (GE). Buy the cheapest per-dose form, decant to (4), sell. Margin is per (4) produced, after tax; low-dose potions are often thin — check the buy dose's volume before scaling.</p>
     <p class="note">Margins are per set and ignore buy limits — most set components have small limits, so treat this as opportunity-spotting, not bulk throughput. "Pack" buys pieces (at ask) and sells the set (taxed); "unpack" buys the set and sells pieces (taxed). Only fully-repaired Barrows pieces are tradeable.</p>
   </div>
   <div id="flips-view" role="tabpanel" aria-labelledby="tab-flips" tabindex="0" hidden>
@@ -763,7 +771,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.7</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.8</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1193,6 +1201,14 @@ function exitInfo(m){
   return {best:"sell"};
 }
 
+function cap4h(m){
+  if(!priced||m.loot)return null;
+  let c=0,miss=false;
+  (m.in||[]).forEach(i=>{const p=buyPrice(i.n);if(p==null)miss=true;else c+=p*i.h;});
+  if(m.fee)c+=m.fee;
+  return miss?null:Math.round(c*4);
+}
+function bankCap(){return (profile.bank&&profile.bank.total)?profile.bank.total:null;}
 function gpHr(m){
   if(m.loot) return null;
   if(m.xponly) return 0;
@@ -1261,6 +1277,9 @@ function detailHtml(m){
       lines.push(`<div class="d-line"><span class="d-n">Runtime / 4h window</span><span class="d-p ${lg.limited?'warn':''}">${lg.runtimeHrs>=4?'no cap (4h+)':'~'+mins+' min then re-buy'}</span></div>`);
     }
     if(lg.maxProfit4h!=null) lines.push(`<div class="d-line"><span class="d-n">Max profit / 4h</span><span class="d-p">${fmtGp(lg.maxProfit4h)}</span></div>`);
+    const c4=cap4h(m);
+    if(c4!=null&&c4>0){const b=bankCap();const ok=b!=null&&c4<=b;
+      lines.push(`<div class="d-line"><span class="d-n">Capital for 4h</span><span class="d-p">${fmtGp(c4)}${b!=null?(ok?' <span class="gain">within bank</span>':' <span class="loss">exceeds bank</span>'):''}</span></div>`);}
     if(lg.thin){
       const pct=Math.round(lg.thin.share*100);
       lines.push(`<div class="d-line"><span class="d-n">⚠️ Thin market</span><span class="d-p warn">output trades ~${(lg.thin.dv/1000).toFixed(1)}k/day · you'd be ~${pct>99?'>99':pct}% of it</span></div>`);
@@ -1288,6 +1307,7 @@ function render(){
   if(ui.afk==="afkonly") list=list.filter(m=>m.afk==="afk");
   else if(ui.afk==="afkfriendly") list=list.filter(m=>m.afk==="afk"||m.afk==="low");
   if(profile.hideLocked) list=list.filter(m=>!lockedMethod(m));
+  if(ui.afford&&bankCap()!=null) list=list.filter(m=>{const c=cap4h(m);return c==null||c<=bankCap();});
   const val=m=>{
     if(ui.sort==="xp") return m.xp;
     if(ui.sort==="gpx") return m.gp==null?-1e15:m.gp/m.xp;
@@ -1389,7 +1409,7 @@ async function retry24h(){
   try{
     const r=await fetch(`${API}/24h`);if(!r.ok)return;
     apply24h(await r.json());
-    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();}
+    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();}
   }catch(e){}
 }
 async function load(){
@@ -1422,7 +1442,7 @@ async function load(){
   }catch(e){
     dot.className="dot err";st.textContent="Live prices unavailable.";err.classList.add("show");priced=false;
   }
-  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();renderValidation();
+  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();renderValidation();
 }
 
 document.getElementById("skillSel").addEventListener("change",e=>{ui.skill=e.target.value;render();});
@@ -1795,6 +1815,16 @@ document.getElementById("syncBtn").addEventListener("click",syncLevels);
 document.getElementById("rsnInput").addEventListener("keydown",e=>{if(e.key==="Enter")syncLevels();});
 document.getElementById("validateBtn").addEventListener("click",renderValidation);
 document.getElementById("effRange").addEventListener("input",e=>{profile.eff=(+e.target.value)/100;document.getElementById("effLabel").textContent=(+e.target.value)+"%";pSave();applyProfile();});
+(function(){
+  const c=document.getElementById("affordChk"),l=document.getElementById("affordLbl");
+  function sync(){
+    const b=bankCap();
+    if(b==null){c.disabled=true;l.textContent="Affordable only (load bank in Setup)";}
+    else{c.disabled=false;l.textContent=`Affordable only (bank ${fmtGp(b)})`;}
+  }
+  c.addEventListener("change",()=>{ui.afford=c.checked;render();});
+  sync();window.__affordSync=sync;
+})();
 document.getElementById("hideLockedChk").addEventListener("change",e=>{profile.hideLocked=e.target.checked;pSave();render();});
 
 /* ---------- Bank CSV import + capital-aware Session planner ---------- */
@@ -1855,7 +1885,7 @@ function importBank(text){
   const bv=bankValue(items);
   profile.bank={total:bv.total,coins:bv.coins,count:bv.count,ts:Date.now()};pSave();
   if(msg)msg.textContent=`Loaded ${bv.count} items \u00b7 valued ${fmtGp(bv.total)}${bv.coins?` (incl. ${fmtGp(bv.coins)} coins)`:""} \u00b7 ${bv.priced} priced \u2713`;
-  sessionState.cap=Math.round(bv.total);
+  sessionState.cap=Math.round(bv.total);if(window.__affordSync)window.__affordSync();
   const ci=document.getElementById("capInput");if(ci)ci.value=Math.round(bv.total);
   const sv=document.getElementById("session-view");if(sv&&!sv.hidden)sessionRender();
 }
@@ -2058,6 +2088,7 @@ function integrityScan(){
   METHODS.forEach(m=>{(m.in||[]).forEach(i=>add(i.n,"METHODS in · "+m.n));(m.out||[]).forEach(o=>add(o.n,"METHODS out · "+m.n));});
   CONVERSIONS.forEach(c=>{[].concat(c.in||[],c.out||[],c.runes||[]).forEach(x=>add(x.n,"CONVERSIONS · "+c.n));});
   SETS.forEach(s=>{add(s.n,"SETS · "+s.n);s.pieces.forEach(p=>add(p,"SETS pieces · "+s.n));});
+  POTIONS.forEach(b=>[1,2,3,4].forEach(d=>add(b+"("+d+")","DECANT · "+b)));
   BOSSES.forEach(b=>{b.drops.forEach(d=>{
     if(d.ut)return;
     if(d.via){add(d.via.sell,"BOSSES via · "+b.n);if(d.via.buy)add(d.via.buy,"BOSSES via · "+b.n);return;}
@@ -2128,6 +2159,32 @@ const SETS=[
   {n:"Masori armour set (f)",pieces:["Masori mask (f)","Masori body (f)","Masori chaps (f)"]},
   {n:"Obsidian armour set",pieces:["Obsidian helmet","Obsidian platebody","Obsidian platelegs"]}
 ];
+const POTIONS=["Prayer potion","Super restore","Sanfew serum","Saradomin brew","Super combat potion","Divine super combat potion","Ranging potion","Divine ranging potion","Bastion potion","Battlemage potion","Super strength","Super attack","Super defence","Stamina potion","Extended antifire","Extended super antifire","Anti-venom+","Magic potion"];
+function decRender(){
+  const el=document.getElementById("decRows");if(!el)return;
+  if(!priced){needPrices(el,4);return;}
+  const rows=[];
+  POTIONS.forEach(base=>{
+    const s4=sellPrice(base+"(4)");if(s4==null)return;
+    let best=null;
+    [1,2,3].forEach(d=>{
+      const p=buyPrice(base+"("+d+")");if(p==null)return;
+      const perDose=p/d;
+      if(!best||perDose<best.perDose)best={d,p,perDose};
+    });
+    if(!best)return;
+    const margin=Math.round(s4*0.98-4*best.perDose);
+    rows.push({base,best,s4,margin});
+  });
+  rows.sort((a,b)=>b.margin-a.margin);
+  el.innerHTML=rows.map(r=>{
+    const cls=r.margin>=0?"gain":"loss";
+    return `<tr><td><span class="m-name">${r.base}</span></td>`+
+      `<td class="num">(${r.best.d}) @ ${fmtGp(r.best.p)}</td>`+
+      `<td class="num">${fmtGp(r.s4)}</td>`+
+      `<td class="num"><span class="${cls}">${r.margin>=0?"+":"−"}${fmtGp(Math.abs(r.margin))}</span></td></tr>`;
+  }).join("")||`<tr><td colspan="4" class="empty">No potion prices available.</td></tr>`;
+}
 function setsRender(){
   const el=document.getElementById("setRows");if(!el)return;
   if(!priced){needPrices(el,4);return;}
@@ -2181,7 +2238,7 @@ function activateTab(t){
   if(v==="opps") oppsRender();
   if(v==="bosses") bossRender();
   if(v==="setup") setupRender();
-  if(v==="sets") setsRender();
+  if(v==="sets"){setsRender();decRender();}
   const av=document.getElementById(v+"-view");
   if(av){av.classList.remove("view-anim");void av.offsetWidth;av.classList.add("view-anim");}
 }
