@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Money Board">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Spline+Sans+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -72,6 +73,7 @@
   table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
   thead th{background:var(--bg2);text-align:left;padding:11px 13px;font-family:"Spline Sans Mono",monospace;
     font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+  .h-ico{width:15px;height:15px;vertical-align:-2px;margin-right:8px;color:var(--gold)}
   .w-since{font-family:"Spline Sans Mono",monospace;font-size:10.5px;opacity:.9;white-space:nowrap}
   .tab{position:relative}
   .al-badge{position:absolute;top:3px;right:1px;background:var(--gold);color:#1a1206;font-size:9.5px;
@@ -456,9 +458,9 @@
 
   <div id="opps-view" role="tabpanel" aria-labelledby="tab-opps" tabindex="0" hidden>
     <p class="sub">Live read on what's unusually good <em>right now</em>, recomputed every refresh. "Hot to make" compares each recipe's current margin to its own 24h-average margin, so a spike means the method is paying more than usual. Market signals flag momentum and wide spreads for flipping or holding.</p>
-    <div class="opp-sec"><h3 class="opp-h">🔥 Hot to make right now</h3><div class="tbl-shell"><table><thead><tr><th>Method</th><th class="num">GP / hr</th><th class="num">vs typical</th><th class="num">XP / hr</th></tr></thead><tbody id="oppHot"></tbody></table></div></div>
-    <div class="opp-sec"><h3 class="opp-h">📈 Rising items (momentum)</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Price</th><th class="num">1h move</th><th class="num">24h</th></tr></thead><tbody id="oppRise"></tbody></table></div></div>
-    <div class="opp-sec"><h3 class="opp-h">💱 Widest flip margins</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Buy</th><th class="num">Sell</th><th class="num">Margin (tax)</th></tr></thead><tbody id="oppMargin"></tbody></table></div></div>
+    <div class="opp-sec"><h3 class="opp-h"><svg class="h-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2c1.8 2.6 3.8 3.7 3.8 6.6a3.8 3.8 0 1 1-7.6 0c0-1.3.6-2.3 1.4-3.2.3 1 .9 1.6 1.6 1.9C7 5.6 7.6 3.9 8 2.2z"/></g></svg>Hot to make right now</h3><div class="tbl-shell"><table><thead><tr><th>Method</th><th class="num">GP / hr</th><th class="num">vs typical</th><th class="num">XP / hr</th></tr></thead><tbody id="oppHot"></tbody></table></div></div>
+    <div class="opp-sec"><h3 class="opp-h"><svg class="h-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 12.2l4-4.4 2.4 2.2 3.2-4.2M9.6 5.8h3.2V9"/></g></svg>Rising items (momentum)</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Price</th><th class="num">1h move</th><th class="num">24h</th></tr></thead><tbody id="oppRise"></tbody></table></div></div>
+    <div class="opp-sec"><h3 class="opp-h"><svg class="h-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.2h8.2L8.9 3.9M13 9.8H4.8l2.3 2.3"/></g></svg>Widest flip margins</h3><div class="tbl-shell"><table><thead><tr><th>Item</th><th class="num">Buy</th><th class="num">Sell</th><th class="num">Margin (tax)</th></tr></thead><tbody id="oppMargin"></tbody></table></div></div>
     <p class="note">Signals are derived from live GE data (current price vs 24h average, daily volume, buy/sell spread). They're a starting point, not a guarantee — a spike can mean a real opportunity or a temporary blip from a big buy/sell. Always sanity-check volume and the buy limit before committing capital. Not financial advice, in-game or otherwise.</p>
   </div>
 
@@ -541,11 +543,12 @@
       <div class="ctl"><label>Direction</label>
         <select id="setDir"><option value="best">Best per set</option><option value="pack">Pack (pieces → set)</option><option value="unpack">Unpack (set → pieces)</option></select></div>
     </div>
+    <h3 class="opp-h"><svg class="h-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="2.6" width="4.6" height="4.6" rx="0.8"/><rect x="8.8" y="2.6" width="4.6" height="4.6" rx="0.8"/><rect x="2.6" y="8.8" width="4.6" height="4.6" rx="0.8"/><rect x="8.8" y="8.8" width="4.6" height="4.6" rx="0.8"/></g></svg>Item sets</h3>
     <div class="tbl-shell"><table>
       <thead><tr><th>Set</th><th class="num">Pieces cost</th><th class="num">Set price</th><th class="num">Best margin</th></tr></thead>
       <tbody id="setRows"></tbody>
     </table></div>
-    <h3 class="opp-h">Potion decanting</h3>
+    <h3 class="opp-h"><svg class="h-ico" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 2.6h3.2M7 2.6v3.2L3.9 11a2 2 0 0 0 1.8 2.8h4.6A2 2 0 0 0 12.1 11L9 5.8V2.6M5.2 9.4h5.6"/></g></svg>Potion decanting</h3>
     <div class="tbl-shell"><table>
       <thead><tr><th>Potion</th><th class="num">Buy as</th><th class="num">(4) sells</th><th class="num">Margin / (4)</th></tr></thead>
       <tbody id="decRows"></tbody>
@@ -727,7 +730,7 @@
       </section>
       <section class="setup-card">
         <h3>Import bank (CSV)</h3>
-        <p class="muted">Export your bank from the Bank Memory plugin (or the clipboard CSV exporter) and paste it here, or load the file. It values your bank at live prices and feeds the Session planner&rsquo;s capital.</p>
+        <p class="muted">Export your bank from the Bank Memory plugin (or the clipboard CSV exporter) and paste it here, or load the file. It values your bank at live prices and feeds the Session planner&rsquo;s capital and the Board&rsquo;s &ldquo;Affordable only&rdquo; filter.</p>
         <textarea id="bankInput" class="bank-input" placeholder="Paste bank CSV — rows of: item name, quantity"></textarea>
         <div class="rsn-row">
           <button id="bankBtn" class="refresh">Load bank</button>
@@ -771,7 +774,7 @@
   </div>
 
   <!-- dev changelog lives in git history; keep this footer user-facing only -->
-<footer><span class="buildstamp">Build 2026-07-06.8</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
+<footer><span class="buildstamp">Build 2026-07-06.9</span> · Live prices from the <a class="xlink" href="https://prices.runescape.wiki" target="_blank" rel="noopener">OSRS Wiki real-time API</a> · Conservative pricing, GE tax included<br>A fan-made tool. Not affiliated with Jagex Ltd. Old School RuneScape is a trademark of Jagex.</footer>
 </div>
 
 <script>
@@ -1409,7 +1412,7 @@ async function retry24h(){
   try{
     const r=await fetch(`${API}/24h`);if(!r.ok)return;
     apply24h(await r.json());
-    if(stats24){setLiveStatus();render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();}
+    if(stats24){setLiveStatus();_mv=null;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();}
   }catch(e){}
 }
 async function load(){
@@ -1442,7 +1445,7 @@ async function load(){
   }catch(e){
     dot.className="dot err";st.textContent="Live prices unavailable.";err.classList.add("show");priced=false;
   }
-  btn.disabled=false;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();renderValidation();
+  btn.disabled=false;_mv=null;render();mRender();oppsRender();watchSnap();watchRender();holdRender();updateAlertBadge();setsRender();decRender();renderValidation();
 }
 
 document.getElementById("skillSel").addEventListener("change",e=>{ui.skill=e.target.value;render();});
@@ -2179,7 +2182,8 @@ function decRender(){
   rows.sort((a,b)=>b.margin-a.margin);
   el.innerHTML=rows.map(r=>{
     const cls=r.margin>=0?"gain":"loss";
-    return `<tr><td><span class="m-name">${r.base}</span></td>`+
+    const did=nameToId[(r.base+"(4)").toLowerCase()];
+    return `<tr><td>${did!=null?`<img class="ico" src="${ICO}${did}.png" loading="lazy" onerror="this.style.display='none'" alt="">`:""}<span class="m-name">${r.base}</span></td>`+
       `<td class="num">(${r.best.d}) @ ${fmtGp(r.best.p)}</td>`+
       `<td class="num">${fmtGp(r.s4)}</td>`+
       `<td class="num"><span class="${cls}">${r.margin>=0?"+":"−"}${fmtGp(Math.abs(r.margin))}</span></td></tr>`;
@@ -2205,7 +2209,8 @@ function setsRender(){
     const best=dir==="pack"?{v:r.pack,k:"pack"}:dir==="unpack"?{v:r.unpack,k:"unpack"}:(r.pack>=r.unpack?{v:r.pack,k:"pack"}:{v:r.unpack,k:"unpack"});
     const cls=best.v>=0?"gain":"loss";
     const tag=`<span class="w-since ${cls}">${best.k}</span>`;
-    return `<tr><td><span class="m-name">${r.s.n.replace("'s armour set","")}</span> ${tag}</td>`+
+    const sid=nameToId[r.s.n.toLowerCase()];
+    return `<tr><td>${sid!=null?`<img class="ico" src="${ICO}${sid}.png" loading="lazy" onerror="this.style.display='none'" alt="">`:""}<span class="m-name">${r.s.n.replace("'s armour set","")}</span> ${tag}</td>`+
       `<td class="num">${fmtGp(r.pieceAsk)}</td><td class="num">${fmtGp(r.setSell)}</td>`+
       `<td class="num"><span class="${cls}">${best.v>=0?"+":"−"}${fmtGp(Math.abs(best.v))}</span></td></tr>`;
   }).join("");
@@ -2325,7 +2330,9 @@ function wireDetailRows(tbody,rowSel,prefix,attr,last){
 }
 function chgHtml(chg){return chg==null?`<span class="pending">—</span>`:`<span class="${chg>=0?'gain':'loss'}">${(chg>=0?'+':'−')+Math.abs(chg).toFixed(1)}%</span>`;}
 const ICO="https://raw.githubusercontent.com/lou55/osrsreboxed-db/master/docs/items-icons/";
+let _mv=null;
 function buildMovers(){
+  if(_mv)return _mv;
   const arr=[];const nat=high("Nature rune");
   for(const id in latest){
     const p=latest[id];if(!p||p.high==null||p.low==null)continue;
@@ -2340,6 +2347,7 @@ function buildMovers(){
     arr.push({id,name,high:p.high,low:p.low,vol:vlm,chg,s1,s5,margin:Math.floor(p.high*0.98-p.low),
       limit:nameToLimit[name.toLowerCase()],alch:ha,lalch:la,aprof});
   }
+  _mv=arr;
   return arr;
 }
 function mDetail(x){
@@ -2546,7 +2554,8 @@ function holdRender(){
         val=rem>0?`<span class="pending">fills for ${fmtGp(Math.round(h.price*0.98*rem))}</span>`:`<span class="pending">filled</span>`;
       }
     }
-    return `<tr><td><span class="m-name">${nm}</span> ${side}</td><td class="num">${fmtGp(h.price)}</td><td class="num">${fillTxt}</td><td class="num">${mkt!=null?fmtGp(mkt):"—"}</td><td class="num">${val}</td></tr>`;
+    const hid=nameToId[nm.toLowerCase()];
+    return `<tr><td>${hid!=null?`<img class="ico" src="${ICO}${hid}.png" loading="lazy" onerror="this.style.display='none'" alt="">`:""}<span class="m-name">${nm}</span> ${side}</td><td class="num">${fmtGp(h.price)}</td><td class="num">${fillTxt}</td><td class="num">${mkt!=null?fmtGp(mkt):"—"}</td><td class="num">${val}</td></tr>`;
   }).join("");
   const tp=document.getElementById("trkOpen");
   if(tp){tp.textContent=any?((tot>=0?"+":"−")+fmtGp(Math.abs(tot))):"—";tp.className="v "+(tot>=0?"gain":"loss");}
